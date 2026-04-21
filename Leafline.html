@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leafline Task Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Colors */
+            --c-primary: #06B6D4;
+            --c-primary-dark: #0891B2;
+            --c-bg: #F0FDFF;
+            --c-surface: #ffffff;
+            --c-surface-hover: #f8fafc;
+            --c-text: #374151;
+            --c-text-muted: #6b7280;
+            --c-border: #e5e7eb;
+            --c-danger: #ef4444;
+            --c-warning: #f59e0b;
+            --c-success: #10b981;
+
+            /* Effects */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-blur: blur(12px);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--c-bg);
+            color: var(--c-text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: var(--c-surface);
+            border-right: 1px solid var(--c-border);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 16px;
+            gap: 24px;
+            z-index: 10;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--c-primary-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 8px;
+        }
+        .nav-links { display: flex; flex-direction: column; gap: 8px; }
+        .nav-item {
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .nav-item:hover, .nav-item.active {
+            background-color: var(--c-bg);
+            color: var(--c-primary-dark);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            position: relative;
+        }
+        .header {
+            padding: 24px 32px;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--glass-bg);
+            box-shadow: var(--shadow-sm);
+        }
+        .header-actions { display: flex; gap: 16px; align-items: center; }
+        .search-bar {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--c-border);
+            outline: none;
+            width: 250px;
+            transition: border-color 0.2s;
+        }
+        .search-bar:focus { border-color: var(--c-primary); }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--c-primary), var(--c-primary-dark));
+            color: white;
+            box-shadow: 0 2px 4px rgba(6, 182, 212, 0.3);
+        }
+        .btn-primary:hover { opacity: 0.9; box-shadow: 0 4px 6px rgba(6, 182, 212, 0.4); }
+        .btn-danger { background: var(--c-danger); color: white; }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--c-border);
+            color: var(--c-text);
+        }
+        .btn-outline:hover { background: var(--c-bg); color: var(--c-primary-dark); border-color: var(--c-primary); }
+        
+        .content-area { padding: 32px; }
+
+        /* Dashboard specific */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+        .project-card {
+            background: var(--c-surface);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            border: 1px solid transparent;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .project-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--c-primary);
+        }
+        .project-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .project-title { font-size: 1.25rem; font-weight: 600; color: var(--c-text); margin-bottom: 4px; }
+        .project-desc { font-size: 0.875rem; color: var(--c-text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        /* Circular Progress */
+        .progress-circle {
+            position: relative;
+            width: 48px;
+            height: 48px;
+        }
+        .progress-circle svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+        .bg-circle { fill: none; stroke: var(--c-border); stroke-width: 4; }
+        .progress-path {
+            fill: none;
+            stroke: var(--c-primary);
+            stroke-width: 4;
+            stroke-linecap: round;
+            transition: stroke-dasharray 0.5s ease;
+        }
+        .progress-text {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--c-primary-dark);
+        }
+
+        /* Tree View */
+        .tree-container {
+            background: var(--c-surface);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: var(--shadow-sm);
+            min-height: 400px;
+            overflow-x: auto;
+        }
+
+        /* Root list — no connectors */
+        .tree-root {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .tree-root > .tree-node {
+            padding-left: 0;
+        }
+        .tree-root > .tree-node::before,
+        .tree-root > .tree-node::after { display: none; }
+
+        /* Child list — vertical rail line */
+        .tree-children {
+            list-style: none;
+            padding: 0 0 0 28px;
+            margin: 12px 0 0 0;
+            position: relative;
+        }
+        /* Vertical rail spanning all children */
+        .tree-children::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 28px;
+            bottom: 0;
+            width: 2px;
+            background: #cbd5e1;
+        }
+        /* Collapsed children */
+        .tree-children.collapsed {
+            display: none;
+        }
+
+        /* Each node */
+        .tree-node {
+            position: relative;
+            margin-bottom: 12px;
+            padding-left: 36px;
+        }
+        /* Horizontal arm from rail to card */
+        .tree-node::before {
+            content: '';
+            position: absolute;
+            top: 26px;
+            left: 0;
+            width: 28px;
+            height: 2px;
+            background: #cbd5e1;
+        }
+        /* Cover the vertical rail below the last child's arm */
+        .tree-children > .tree-node:last-child::after {
+            content: '';
+            position: absolute;
+            top: 28px;
+            left: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--c-surface);
+        }
+
+        /* Expand / Collapse toggle */
+        .toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid #cbd5e1;
+            background: var(--c-surface);
+            color: var(--c-text-muted);
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+        .toggle-btn:hover {
+            border-color: var(--c-primary);
+            color: var(--c-primary);
+            background: var(--c-bg);
+        }
+        .toggle-btn.is-collapsed {
+            transform: rotate(-90deg);
+        }
+        
+        .task-card {
+            background: var(--c-surface);
+            border: 2px solid var(--c-border);
+            border-radius: 12px;
+            padding: 16px;
+            width: min(100%, 450px);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .task-card:hover { border-color: #cbd5e1; box-shadow: var(--shadow-sm); }
+        .task-card.status-complete { border-color: var(--c-primary); background: #f8ffff; }
+        .task-card.due-overdue { border-color: var(--c-danger); }
+        .task-card.due-soon { border-color: var(--c-warning); }
+        
+        .task-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task-title {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid var(--c-primary);
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .status-dot.complete {
+            background: var(--c-primary);
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 0.75rem;
+            color: var(--c-text-muted);
+            align-items: center;
+        }
+        .priority-badge, .tag-badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 0.7rem;
+        }
+        .priority-High { background: #fee2e2; color: #b91c1c; }
+        .priority-Medium { background: #fef3c7; color: #b45309; }
+        .priority-Low { background: var(--c-bg); color: var(--c-primary-dark); }
+        .tag-badge { background: #f1f5f9; color: #475569; }
+
+        .task-actions {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .task-card:hover .task-actions,
+        .project-card:hover .task-actions { opacity: 1; }
+        .action-icon {
+            cursor: pointer;
+            color: var(--c-text-muted);
+            font-size: 1.1rem;
+            display: flex; align-items: center; justify-content: center;
+            width: 24px; height: 24px; border-radius: 4px;
+        }
+        .action-icon:hover { background: #f1f5f9; color: var(--c-primary-dark); }
+        
+        /* Drag and Drop */
+        .task-card[draggable="true"] { cursor: grab; }
+        .task-card.dragging { opacity: 0.5; }
+        .drop-zone { height: 8px; margin: -4px 0; border-radius: 4px; transition: background 0.2s; }
+        .drop-zone.active { background: var(--c-primary); }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: var(--c-surface);
+            border-radius: 16px;
+            padding: 32px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .modal-header { font-size: 1.25rem; font-weight: 600; display: flex; justify-content: space-between; }
+        .close-modal { cursor: pointer; color: var(--c-text-muted); }
+        
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-label { font-size: 0.875rem; font-weight: 500; }
+        .form-control {
+            padding: 10px 14px;
+            border: 1px solid var(--c-border);
+            border-radius: 8px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-control:focus { border-color: var(--c-primary); box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1); }
+        
+        .tags-container {
+            display: flex; flex-wrap: wrap; gap: 8px;
+            border: 1px solid var(--c-border); padding: 8px; border-radius: 8px;
+            min-height: 42px;
+        }
+        .tags-container input { border: none; outline: none; flex: 1; min-width: 100px; }
+        
+        .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px; }
+
+        /* Utilities */
+        .hidden { display: none !important; }
+        .empty-state {
+            display: flex; flex-direction: column; align-items: center; padding: 48px; gap: 16px;
+            color: var(--c-text-muted); text-align: center;
+        }
+        .breadcrumbs { font-size: 0.875rem; color: var(--c-text-muted); margin-bottom: 24px; cursor: pointer;}
+        .breadcrumbs span:hover { text-decoration: underline; color: var(--c-primary); }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Leafline
+        </div>
+        <nav class="nav-links">
+            <div class="nav-item active" data-view="dashboard">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                Dashboard
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="header">
+            <h1 id="view-title">Dashboard</h1>
+            <div class="header-actions">
+                <input type="text" class="search-bar" id="search-input" placeholder="Search tasks...">
+                <div class="view-controls hidden" id="project-controls">
+                    <select class="form-control" id="status-filter" style="padding: 8px; max-width: 120px;">
+                        <option value="All">All Status</option>
+                        <option value="incomplete">Incomplete</option>
+                        <option value="complete">Complete</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" id="main-action-btn">+ New Project</button>
+            </div>
+        </header>
+
+        <div class="content-area">
+            <!-- Dashboard View -->
+            <div id="dashboard-view">
+                <div class="projects-grid" id="projects-grid"></div>
+            </div>
+
+            <!-- Project Tree View -->
+            <div id="project-view" class="hidden">
+                <div class="breadcrumbs" id="breadcrumbs">Dashboard / </div>
+                <div class="tree-container">
+                    <div id="task-tree" class="tree"></div>
+                </div>
+            </div>
+            
+            <!-- Search Results View -->
+            <div id="search-view" class="hidden">
+                 <div class="tree-container">
+                    <div id="search-results-list"></div>
+                 </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Project Modal -->
+    <div class="modal-overlay" id="project-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="project-modal-title">New Project</span>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Name *</label>
+                <input type="text" id="proj-name" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea id="proj-desc" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Due Date</label>
+                <input type="date" id="proj-date" class="form-control">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-outline close-modal-btn">Cancel</button>
+                <button class="btn btn-primary" id="save-proj-btn">Save Project</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Modal -->
+    <div class="modal-overlay" id="task-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="task-modal-title">New Task</span>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Task Name *</label>
+                <input type="text" id="task-name" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea id="task-desc" class="form-control" rows="2"></textarea>
+            </div>
+            <div style="display:flex; gap:16px;">
+                <div class="form-group" style="flex:1;">
+                    <label class="form-label">Due Date</label>
+                    <input type="date" id="task-date" class="form-control">
+                </div>
+                <div class="form-group" style="flex:1;">
+                    <label class="form-label">Priority</label>
+                    <select id="task-priority" class="form-control">
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Tags (Press Enter)</label>
+                <div class="tags-container" id="task-tags-container">
+                    <input type="text" id="task-tag-input" placeholder="Add tag...">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-outline close-modal-btn">Cancel</button>
+                <button class="btn btn-primary" id="save-task-btn">Save Task</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Javascript -->
+    <script>
+        // Data Schema
+        // Project: { id, name, description, dueDate, priority, tags, createdAt, tasks: [] }
+        // Task: { id, name, description, dueDate, priority, tags, status, parentId, order, createdAt }
+        
+        let appState = {
+            projects: []
+        };
+        
+        let currentView = 'dashboard'; // 'dashboard', 'project', 'search'
+        let activeProjectId = null;
+        
+        // Modal states
+        let editingProjectId = null;
+        let editingTaskId = null;
+        let currentParentIdForTask = null; // null means root of project
+        let taskTags = [];
+        
+        // Collapse state (persists across re-renders)
+        const collapsedNodes = new Set();
+
+        function toggleCollapse(btn) {
+            const nodeEl = btn.closest('.tree-node');
+            const nodeId = nodeEl.dataset.id;
+            const childrenUl = nodeEl.querySelector('.tree-children');
+            if (!childrenUl) return;
+
+            if (collapsedNodes.has(nodeId)) {
+                collapsedNodes.delete(nodeId);
+                childrenUl.classList.remove('collapsed');
+                btn.classList.remove('is-collapsed');
+            } else {
+                collapsedNodes.add(nodeId);
+                childrenUl.classList.add('collapsed');
+                btn.classList.add('is-collapsed');
+            }
+        }
+
+        // DOM Elements
+        const dashboardView = document.getElementById('dashboard-view');
+        const projectView = document.getElementById('project-view');
+        const searchView = document.getElementById('search-view');
+        const projectsGrid = document.getElementById('projects-grid');
+        const taskTree = document.getElementById('task-tree');
+        const viewTitle = document.getElementById('view-title');
+        const mainActionBtn = document.getElementById('main-action-btn');
+        const breadcrumbs = document.getElementById('breadcrumbs');
+        const projectControls = document.getElementById('project-controls');
+        
+        // Modals
+        const projectModal = document.getElementById('project-modal');
+        const taskModal = document.getElementById('task-modal');
+        const projNameInput = document.getElementById('proj-name');
+        const projDescInput = document.getElementById('proj-desc');
+        const projDateInput = document.getElementById('proj-date');
+        
+        const taskNameInput = document.getElementById('task-name');
+        const taskDescInput = document.getElementById('task-desc');
+        const taskDateInput = document.getElementById('task-date');
+        const taskPriorityInput = document.getElementById('task-priority');
+        const taskTagInput = document.getElementById('task-tag-input');
+        const taskTagsContainer = document.getElementById('task-tags-container');
+
+        // Initialize App
+        function init() {
+            loadState();
+            setupEventListeners();
+            switchView('dashboard');
+        }
+
+        // Local Storage
+        function loadState() {
+            const saved = localStorage.getItem('leafline_data');
+            if (saved) {
+                appState = JSON.parse(saved);
+            } else {
+                seedData();
+            }
+        }
+
+        function saveState() {
+            localStorage.setItem('leafline_data', JSON.stringify(appState));
+        }
+
+        function seedData() {
+            const seedProjId = generateId();
+            const rootTaskId = generateId();
+            const child1Id = generateId();
+            const child2Id = generateId();
+            const subChildId = generateId();
+            
+            appState.projects = [{
+                id: seedProjId,
+                name: 'Website Redesign',
+                description: 'Overhaul corporate website with new Leafline design system.',
+                dueDate: new Date(Date.now() + 86400000*7).toISOString().split('T')[0],
+                priority: 'High',
+                tags: ['UI/UX', 'Web'],
+                createdAt: Date.now(),
+                tasks: [
+                    { id: rootTaskId, name: 'Complete Registration Flow', description: '', dueDate: '', priority: 'High', tags: [], status: 'incomplete', parentId: null, order: 0, createdAt: Date.now() },
+                    { id: child1Id, name: 'Design Mockups', description: '', dueDate: new Date(Date.now() + 86400000*2).toISOString().split('T')[0], priority: 'Medium', tags: ['Design'], status: 'incomplete', parentId: rootTaskId, order: 0, createdAt: Date.now() },
+                    { id: child2Id, name: 'Frontend Implementation', description: '', dueDate: '', priority: 'High', tags: ['Dev'], status: 'incomplete', parentId: rootTaskId, order: 1, createdAt: Date.now() },
+                    { id: subChildId, name: 'Build HTML structure', description: '', dueDate: '', priority: 'High', tags: [], status: 'complete', parentId: child2Id, order: 0, createdAt: Date.now() }
+                ]
+            }];
+            saveState();
+        }
+
+        function generateId() {
+            return Math.random().toString(36).substring(2, 10);
+        }
+
+        // Core Functions
+        function getProject(id) {
+            return appState.projects.find(p => p.id === id);
+        }
+
+        function getTasksTree(projectId, filterStatus = 'All', searchQuery = '') {
+            const project = getProject(projectId);
+            if (!project) return [];
+            
+            let allTasks = project.tasks;
+            
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase();
+                allTasks = allTasks.filter(t => t.name.toLowerCase().includes(q));
+                // In search mode, flat structure is fine
+                return allTasks.map(t => ({...t, children: []}));
+            }
+
+            // Build tree
+            const buildNode = (parentId) => {
+                let children = allTasks
+                    .filter(t => t.parentId === parentId)
+                    .sort((a, b) => a.order - b.order)
+                    .map(t => ({ ...t, children: buildNode(t.id) }));
+                
+                if (filterStatus !== 'All') {
+                    // Only apply filter if it's a leaf node or we are forcing logic
+                    // Standard task tracker: hide if status doesn't match and children don't match
+                }
+                return children;
+            };
+
+            return buildNode(null);
+        }
+        
+        // Auto Complete parent logic
+        function evaluateTaskStatus(projectId, taskId) {
+            const project = getProject(projectId);
+            const task = project.tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            const children = project.tasks.filter(t => t.parentId === taskId);
+            if (children.length > 0) {
+                const allComplete = children.every(c => c.status === 'complete');
+                const newState = allComplete ? 'complete' : 'incomplete';
+                if (task.status !== newState) {
+                    task.status = newState;
+                    if(task.parentId) evaluateTaskStatus(projectId, task.parentId);
+                }
+            } else if (task.parentId) {
+               // leaf node status change might bubble up
+               evaluateTaskStatus(projectId, task.parentId);
+            }
+        }
+
+        function toggleTaskStatus(projectId, taskId) {
+            const project = getProject(projectId);
+            const task = project.tasks.find(t => t.id === taskId);
+            const children = project.tasks.filter(t => t.parentId === taskId);
+            
+            if (task.status === 'complete') {
+                task.status = 'incomplete';
+                // if parent marked incomplete, we don't automatically mark children incomplete
+            } else {
+                // If it has children, all children must be complete to complete parent
+                // As an action, clicking complete on a parent could automatically complete all children
+                const completeRecursive = (pId) => {
+                    const kids = project.tasks.filter(t => t.parentId === pId);
+                    kids.forEach(k => {
+                        k.status = 'complete';
+                        completeRecursive(k.id);
+                    });
+                };
+                task.status = 'complete';
+                completeRecursive(task.id);
+            }
+            evaluateTaskStatus(projectId, task.parentId); // Bubble up
+            saveState();
+            renderTaskTree();
+            renderDashboard(); 
+        }
+
+        // Circular progress calculation
+        function calculateProgress(project) {
+            const leaves = project.tasks.filter(t => !project.tasks.some(c => c.parentId === t.id));
+            if (leaves.length === 0) return 0;
+            const completed = leaves.filter(t => t.status === 'complete').length;
+            return Math.round((completed / leaves.length) * 100);
+        }
+
+        // UI Rendering
+        function switchView(view, pId = null) {
+            currentView = view;
+            activeProjectId = pId;
+            document.getElementById('search-input').value = '';
+            
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            if(view === 'dashboard') document.querySelector('[data-view="dashboard"]').classList.add('active');
+
+            dashboardView.classList.add('hidden');
+            projectView.classList.add('hidden');
+            searchView.classList.add('hidden');
+            projectControls.classList.add('hidden');
+
+            if (view === 'dashboard') {
+                viewTitle.innerText = 'Dashboard';
+                mainActionBtn.innerText = '+ New Project';
+                mainActionBtn.style.display = 'inline-flex';
+                dashboardView.classList.remove('hidden');
+                renderDashboard();
+            } else if (view === 'project') {
+                const p = getProject(pId);
+                viewTitle.innerText = p.name;
+                mainActionBtn.innerText = '+ Add Root Task';
+                mainActionBtn.style.display = 'inline-flex';
+                projectView.classList.remove('hidden');
+                projectControls.classList.remove('hidden');
+                breadcrumbs.innerHTML = `<span onclick="switchView('dashboard')">Dashboard</span> / ${p.name}`;
+                renderTaskTree();
+            } else if (view === 'search') {
+                viewTitle.innerText = 'Search Results';
+                mainActionBtn.style.display = 'none';
+                searchView.classList.remove('hidden');
+                // render handled by search handler
+            }
+        }
+
+        function getCardBorderClass(task) {
+            if (task.status === 'complete') return 'status-complete';
+            if (!task.dueDate) return '';
+            
+            const due = new Date(task.dueDate).getTime();
+            const now = new Date().getTime();
+            const daysLeft = (due - now) / (1000 * 3600 * 24);
+            
+            if (daysLeft < 0) return 'due-overdue';
+            if (daysLeft <= 2) return 'due-soon';
+            return '';
+        }
+
+        function renderDashboard() {
+            projectsGrid.innerHTML = '';
+            if (appState.projects.length === 0) {
+                projectsGrid.innerHTML = `<div class="empty-state">No projects yet. Create one to get started.</div>`;
+                return;
+            }
+
+            appState.projects.forEach(p => {
+                const pct = calculateProgress(p);
+                const dashArray = `${pct}, 100`;
+                
+                const html = `
+                    <div class="project-card" onclick="switchView('project', '${p.id}')">
+                        <div class="project-card-header">
+                            <div>
+                                <h3 class="project-title">${p.name}</h3>
+                                <div class="project-desc">${p.description || 'No description'}</div>
+                            </div>
+                            <div class="progress-circle" title="${pct}% Completed">
+                                <svg viewBox="0 0 36 36">
+                                    <path class="bg-circle" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                    <path class="progress-path" stroke-dasharray="${dashArray}" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                </svg>
+                                <div class="progress-text">${pct}%</div>
+                            </div>
+                        </div>
+                        <div class="task-meta">
+                            <span>📅 Due: ${p.dueDate || 'None'}</span>
+                            <span class="priority-badge priority-${p.priority}">${p.priority}</span>
+                        </div>
+                        <div class="task-actions" style="top:auto; bottom:24px;">
+                            <div class="action-icon" onclick="event.stopPropagation(); editProject('${p.id}')" title="Edit">✎</div>
+                            <div class="action-icon" onclick="event.stopPropagation(); deleteProject('${p.id}')" title="Delete">🗑</div>
+                        </div>
+                    </div>
+                `;
+                projectsGrid.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        function renderTaskTree() {
+            taskTree.innerHTML = '';
+            const statusFilter = document.getElementById('status-filter').value;
+            const treeData = getTasksTree(activeProjectId, statusFilter);
+            
+            if (treeData.length === 0) {
+                taskTree.innerHTML = `<div class="empty-state">No tasks here. Let's add some!</div>`;
+                return;
+            }
+
+            const renderNode = (node) => {
+                if (statusFilter !== 'All' && node.status !== statusFilter && node.children.length === 0) return '';
+
+                const borderClass = getCardBorderClass(node);
+                const tagHtml = node.tags.map(t => `<span class="tag-badge">${t}</span>`).join('');
+                const hasChildren = node.children.length > 0;
+                const childrenHtml = hasChildren
+                    ? `<ul class="tree-children">${node.children.map(c => renderNode(c)).join('')}</ul>`
+                    : '';
+                const toggleHtml = hasChildren
+                    ? `<span class="toggle-btn" onclick="toggleCollapse(this)" title="Expand / Collapse">▼</span>`
+                    : '';
+
+                return `
+                    <li class="tree-node" data-id="${node.id}" draggable="true">
+                        <div class="drop-zone" data-parent="${node.parentId}" data-order="${node.order}"></div>
+                        <div class="task-card ${borderClass}">
+                            <div class="task-card-header">
+                                <div class="task-title">
+                                    ${toggleHtml}
+                                    <div class="status-dot ${node.status}" onclick="toggleTaskStatus('${activeProjectId}', '${node.id}')"></div>
+                                    ${node.name}
+                                </div>
+                            </div>
+                            ${node.description ? `<div style="font-size:0.875rem; color:#6b7280">${node.description}</div>` : ''}
+                            <div class="task-meta">
+                                ${node.dueDate ? `<span>📅 ${node.dueDate}</span>` : ''}
+                                <span class="priority-badge priority-${node.priority}">${node.priority}</span>
+                                ${tagHtml}
+                            </div>
+                            <div class="task-actions">
+                                <div class="action-icon" onclick="openTaskModal('${node.id}')" title="Add Child">+</div>
+                                <div class="action-icon" onclick="editTask('${node.id}')" title="Edit">✎</div>
+                                <div class="action-icon" onclick="deleteTask('${node.id}')" title="Delete">🗑</div>
+                            </div>
+                        </div>
+                        ${childrenHtml}
+                    </li>
+                `;
+            };
+
+            taskTree.innerHTML = `<ul class="tree-root">${treeData.map(n => renderNode(n)).join('')}</ul>`;
+
+            // Restore collapsed states
+            document.querySelectorAll('.tree-node').forEach(node => {
+                const id = node.dataset.id;
+                if (collapsedNodes.has(id)) {
+                    const children = node.querySelector('.tree-children');
+                    const btn = node.querySelector('.toggle-btn');
+                    if (children) children.classList.add('collapsed');
+                    if (btn) btn.classList.add('is-collapsed');
+                }
+            });
+            setupDragAndDrop();
+        }
+
+        // Modals & Forms
+        function openProjectModal(editId = null) {
+            editingProjectId = editId;
+            const p = editId ? getProject(editId) : null;
+            document.getElementById('project-modal-title').innerText = p ? 'Edit Project' : 'New Project';
+            projNameInput.value = p ? p.name : '';
+            projDescInput.value = p ? p.description : '';
+            projDateInput.value = p ? p.dueDate : '';
+            projectModal.classList.add('active');
+        }
+
+        function saveProject() {
+            if (!projNameInput.value) return alert('Name is required');
+            
+            if (editingProjectId) {
+                const p = getProject(editingProjectId);
+                p.name = projNameInput.value;
+                p.description = projDescInput.value;
+                p.dueDate = projDateInput.value;
+            } else {
+                appState.projects.push({
+                    id: generateId(),
+                    name: projNameInput.value,
+                    description: projDescInput.value,
+                    dueDate: projDateInput.value,
+                    priority: 'Medium',
+                    tags: [],
+                    createdAt: Date.now(),
+                    tasks: []
+                });
+            }
+            saveState();
+            projectModal.classList.remove('active');
+            if(currentView === 'dashboard') renderDashboard();
+        }
+
+        function editProject(id) { openProjectModal(id); }
+        function deleteProject(id) {
+            if(confirm('Are you sure? This deletes everything inside.')){
+                appState.projects = appState.projects.filter(p => p.id !== id);
+                saveState();
+                renderDashboard();
+            }
+        }
+
+        function renderTags() {
+            const tagsHtml = taskTags.map((t, i) => `
+                <span class="tag-badge" style="display:flex;align-items:center;gap:4px;">
+                    ${t} <span style="cursor:pointer;" onclick="removeTag(${i})">&times;</span>
+                </span>
+            `).join('');
+            const inputHtml = `<input type="text" id="task-tag-input" placeholder="Add tag..." onkeypress="handleTagInput(event)">`;
+            taskTagsContainer.innerHTML = tagsHtml + inputHtml;
+        }
+
+        function handleTagInput(e) {
+            if (e.key === 'Enter' && e.target.value.trim()) {
+                e.preventDefault();
+                taskTags.push(e.target.value.trim());
+                renderTags();
+                setTimeout(() => document.getElementById('task-tag-input').focus(), 10);
+            }
+        }
+        window.handleTagInput = handleTagInput;
+
+        function removeTag(index) {
+            taskTags.splice(index, 1);
+            renderTags();
+        }
+        window.removeTag = removeTag;
+
+        function openTaskModal(parentId = null, editId = null) {
+            editingTaskId = editId;
+            currentParentIdForTask = parentId;
+            
+            const project = getProject(activeProjectId);
+            const t = editId ? project.tasks.find(x => x.id === editId) : null;
+            
+            document.getElementById('task-modal-title').innerText = t ? 'Edit Task' : 'New Task';
+            taskNameInput.value = t ? t.name : '';
+            taskDescInput.value = t ? t.description : '';
+            taskDateInput.value = t ? t.dueDate : '';
+            taskPriorityInput.value = t ? t.priority : 'Medium';
+            taskTags = t ? [...t.tags] : [];
+            
+            renderTags();
+            taskModal.classList.add('active');
+        }
+
+        function saveTask() {
+            if (!taskNameInput.value) return alert('Name required');
+            const project = getProject(activeProjectId);
+            
+            if (editingTaskId) {
+                const t = project.tasks.find(x => x.id === editingTaskId);
+                t.name = taskNameInput.value;
+                t.description = taskDescInput.value;
+                t.dueDate = taskDateInput.value;
+                t.priority = taskPriorityInput.value;
+                t.tags = [...taskTags];
+            } else {
+                const siblings = project.tasks.filter(x => x.parentId === currentParentIdForTask);
+                project.tasks.push({
+                    id: generateId(),
+                    name: taskNameInput.value,
+                    description: taskDescInput.value,
+                    dueDate: taskDateInput.value,
+                    priority: taskPriorityInput.value,
+                    tags: [...taskTags],
+                    status: 'incomplete',
+                    parentId: currentParentIdForTask,
+                    order: siblings.length,
+                    createdAt: Date.now()
+                });
+            }
+            // Evaluate status bubbling in case new child makes parent incomplete
+            evaluateTaskStatus(activeProjectId, currentParentIdForTask);
+            saveState();
+            taskModal.classList.remove('active');
+            renderTaskTree();
+        }
+
+        function editTask(id) {
+            const project = getProject(activeProjectId);
+            const t = project.tasks.find(x => x.id === id);
+            openTaskModal(t.parentId, id);
+        }
+
+        function deleteTask(id) {
+            if(confirm('Delete this task and all sub-tasks?')){
+                const project = getProject(activeProjectId);
+                const toDelete = new Set([id]);
+                
+                const gatherChildren = (pId) => {
+                    project.tasks.filter(t => t.parentId === pId).forEach(c => {
+                        toDelete.add(c.id);
+                        gatherChildren(c.id);
+                    });
+                };
+                gatherChildren(id);
+                
+                const task = project.tasks.find(x => x.id === id);
+                project.tasks = project.tasks.filter(t => !toDelete.has(t.id));
+                evaluateTaskStatus(activeProjectId, task.parentId);
+                saveState();
+                renderTaskTree();
+            }
+        }
+
+        // Drag and Drop implementation
+        let dragSrcEl = null;
+
+        function setupDragAndDrop() {
+            const nodes = document.querySelectorAll('.tree-node');
+            const dropZones = document.querySelectorAll('.drop-zone');
+
+            nodes.forEach(node => {
+                node.addEventListener('dragstart', function(e) {
+                    dragSrcEl = this;
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/html', this.innerHTML);
+                    this.classList.add('dragging');
+                });
+                node.addEventListener('dragend', function() {
+                    this.classList.remove('dragging');
+                    dropZones.forEach(z => z.classList.remove('active'));
+                });
+            });
+
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    if(dragSrcEl && dragSrcEl.dataset.id !== this.parentElement.dataset.id) {
+                         this.classList.add('active');
+                    }
+                });
+                zone.addEventListener('dragleave', function() {
+                    this.classList.remove('active');
+                });
+                zone.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('active');
+                    if(dragSrcEl && dragSrcEl !== this.parentElement){
+                        const dragId = dragSrcEl.dataset.id;
+                        const targetParentId = this.dataset.parent === 'null' ? null : this.dataset.parent;
+                        const targetOrder = parseFloat(this.dataset.order);
+                        
+                        // Validations for circular dependency if dragging to a child (ignored in this simplified sibling reorder)
+                        const project = getProject(activeProjectId);
+                        const task = project.tasks.find(t => t.id === dragId);
+                        const oldParent = task.parentId;
+                        
+                        task.parentId = targetParentId;
+                        
+                        // update orders
+                        const siblings = project.tasks.filter(t => t.parentId === targetParentId && t.id !== dragId).sort((a,b)=>a.order-b.order);
+                        siblings.splice(targetOrder, 0, task);
+                        siblings.forEach((t, i) => t.order = i);
+                        
+                        evaluateTaskStatus(activeProjectId, oldParent);
+                        evaluateTaskStatus(activeProjectId, targetParentId);
+                        
+                        saveState();
+                        renderTaskTree();
+                    }
+                });
+            });
+        }
+
+        // Global Listeners
+        function setupEventListeners() {
+            document.querySelectorAll('.close-modal-btn, .close-modal').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    projectModal.classList.remove('active');
+                    taskModal.classList.remove('active');
+                });
+            });
+
+            mainActionBtn.addEventListener('click', () => {
+                if(currentView === 'dashboard') openProjectModal();
+                else if(currentView === 'project') openTaskModal(null);
+            });
+
+            document.getElementById('save-proj-btn').addEventListener('click', saveProject);
+            document.getElementById('save-task-btn').addEventListener('click', saveTask);
+            
+            document.getElementById('status-filter').addEventListener('change', () => {
+                if(currentView === 'project') renderTaskTree();
+            });
+
+            const searchInput = document.getElementById('search-input');
+            searchInput.addEventListener('input', (e) => {
+                const q = e.target.value.trim().toLowerCase();
+                if(q.length > 0) {
+                    if(currentView !== 'search') {
+                        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                        dashboardView.classList.add('hidden');
+                        projectView.classList.add('hidden');
+                        searchView.classList.remove('hidden');
+                        viewTitle.innerText = 'Search Results';
+                        mainActionBtn.style.display = 'none';
+                        projectControls.classList.add('hidden');
+                    }
+                    
+                    const list = document.getElementById('search-results-list');
+                    let resultsHtml = '';
+                    appState.projects.forEach(p => {
+                        const matches = p.tasks.filter(t => t.name.toLowerCase().includes(q));
+                        if(matches.length > 0){
+                            resultsHtml += `<h4 style="margin: 16px 0 8px 0; color:var(--c-primary-dark)">${p.name}</h4>`;
+                            matches.forEach(m => {
+                                resultsHtml += `<div class="task-card" style="margin-bottom:8px;" onclick="switchView('project','${p.id}')">
+                                    <div class="task-title">${m.name}</div>
+                                </div>`;
+                            });
+                        }
+                    });
+                    list.innerHTML = resultsHtml || '<div class="empty-state">No results found</div>';
+                } else {
+                    if(currentView === 'search') switchView('dashboard');
+                }
+            });
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>
