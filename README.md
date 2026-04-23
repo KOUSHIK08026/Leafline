@@ -14,7 +14,7 @@ Leafline is a project-based task tracker built as a single HTML file, using a cy
 
 *Check this section before every new commit.*
 
-### [1.0.1] - 2026-04-23
+### [1.0.1] - 23-04-2026
 - **Horizontal Task Canvas:** Root tasks now display horizontally for a "Progress Board" view; nested sub-tasks remain vertical.
 - **Synchronized UI:** Sidebar and main content transitions are hardware-accelerated and synced at 250ms.
 - **Fixed Branding:** "Leafline" header stays stationary next to the toggle button regardless of sidebar state.
@@ -22,7 +22,7 @@ Leafline is a project-based task tracker built as a single HTML file, using a cy
 - **Visual Polish:** Eliminated ghost icon fragments and layout gaps during sidebar transitions.
 - **Scroll:** Horizontal scroll support added for projects with many root tasks.
 
-### [1.0.0] - 2026-04-21
+### [1.0.0] - 21-04-2026
 - **Initial Release:**
   - Created the single-file structure (`Leafline.html`).
   - Implemented the "Crystalline Growth" cyan-themed design system.
