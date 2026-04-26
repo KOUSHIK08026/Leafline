@@ -29,6 +29,109 @@
             --glass-blur: blur(12px);
         }
 
+        /* ── Dark Theme ─────────────────────────────── */
+        body.dark {
+            --c-bg: #0f172a;
+            --c-surface: #1e293b;
+            --c-surface-hover: #263348;
+            --c-text: #e2e8f0;
+            --c-text-muted: #94a3b8;
+            --c-border: #334155;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+            --glass-bg: rgba(30, 41, 59, 0.9);
+        }
+
+        body.dark .task-card.status-complete {
+            background: #162032;
+        }
+
+        body.dark .priority-Low {
+            background: #0c4a6e;
+            color: #7dd3fc;
+        }
+
+        body.dark .priority-Medium {
+            background: #451a03;
+            color: #fcd34d;
+        }
+
+        body.dark .priority-High {
+            background: #450a0a;
+            color: #fca5a5;
+        }
+
+        body.dark .tag-badge {
+            background: #334155;
+            color: #cbd5e1;
+        }
+
+        body.dark .search-bar {
+            background: var(--c-surface);
+            color: var(--c-text);
+        }
+
+        body.dark .form-control {
+            background: var(--c-surface);
+            color: var(--c-text);
+        }
+
+        body.dark .modal-content {
+            background: #1e293b;
+        }
+
+        body.dark .tags-container {
+            background: var(--c-surface);
+        }
+
+        body.dark .tags-container input {
+            background: transparent;
+            color: var(--c-text);
+        }
+
+        body.dark .drop-zone.active {
+            background: var(--c-primary-dark);
+        }
+
+        body.dark .tree-children::before,
+        body.dark .tree-node::before {
+            background: #334155;
+        }
+
+        body.dark .tree-children > .tree-node:last-child::after {
+            background: var(--c-surface);
+        }
+
+        body.dark .toggle-btn {
+            border-color: #334155;
+            background: var(--c-surface);
+        }
+
+        /* ── Theme Toggle Button ────────────────────── */
+        .theme-toggle {
+            cursor: pointer;
+            color: var(--c-text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid var(--c-border);
+            background: transparent;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            transition: background 0.2s, border-color 0.2s, transform 0.3s;
+        }
+
+        .theme-toggle:hover {
+            background: var(--c-bg);
+            border-color: var(--c-primary);
+            color: var(--c-primary-dark);
+            transform: rotate(20deg);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -495,6 +598,7 @@
             flex-direction: column;
             gap: 8px;
             transition: all 0.2s;
+            cursor: pointer;
         }
 
         .task-card:hover {
@@ -505,6 +609,16 @@
         .task-card.status-complete {
             border-color: var(--c-primary);
             background: #f8ffff;
+            opacity: 0.72;
+        }
+
+        .task-card.status-complete .task-title {
+            text-decoration: line-through;
+            color: var(--c-text-muted);
+        }
+
+        body.dark .task-card.status-complete {
+            opacity: 0.65;
         }
 
         .task-card.due-overdue {
@@ -528,18 +642,58 @@
             gap: 8px;
         }
 
+        /* ── Status Dot (SVG Checkmark) ──────────────── */
         .status-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            border: 2px solid var(--c-primary);
+            width: 20px;
+            height: 20px;
             flex-shrink: 0;
             cursor: pointer;
-            transition: all 0.2s;
+            border: none;
+            background: none;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .status-dot.complete {
-            background: var(--c-primary);
+        .status-dot .dot-circle {
+            fill: none;
+            stroke: var(--c-primary);
+            stroke-width: 2;
+            transition: fill 0.15s ease-in-out, stroke 0.15s ease-in-out;
+        }
+
+        .status-dot .dot-check {
+            fill: none;
+            stroke: white;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 12;
+            stroke-dashoffset: 12;
+            transition: stroke-dashoffset 0.2s ease-in-out 0.12s;
+        }
+
+        /* Checked state */
+        .status-dot.complete .dot-circle {
+            fill: var(--c-primary);
+            stroke: var(--c-primary);
+        }
+
+        .status-dot.complete .dot-check {
+            stroke-dashoffset: 0;
+        }
+
+        /* Pop animation on toggle */
+        @keyframes dot-pop {
+            0%   { transform: scale(1); }
+            40%  { transform: scale(0.75); }
+            70%  { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        .status-dot.animating {
+            animation: dot-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
 
         .task-meta {
@@ -789,6 +943,9 @@
                 </select>
             </div>
             <button class="btn btn-primary" id="main-action-btn">+ New Project</button>
+            <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle Dark / Light Mode">
+                <span id="theme-icon">🌙</span>
+            </button>
         </div>
     </header>
 
@@ -979,10 +1136,26 @@
 
         // Initialize App
         function init() {
+            loadTheme();
             loadState();
             renderProjectNav();
             setupEventListeners();
             switchView('dashboard');
+        }
+
+        // Theme
+        function loadTheme() {
+            const saved = localStorage.getItem('leafline_theme');
+            if (saved === 'dark') {
+                document.body.classList.add('dark');
+                document.getElementById('theme-icon').textContent = '☀️';
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('dark');
+            document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
+            localStorage.setItem('leafline_theme', isDark ? 'dark' : 'light');
         }
 
         // Local Storage
@@ -1083,17 +1256,23 @@
             }
         }
 
-        function toggleTaskStatus(projectId, taskId) {
+        function toggleTaskStatus(projectId, taskId, btnEl) {
             const project = getProject(projectId);
             const task = project.tasks.find(t => t.id === taskId);
-            const children = project.tasks.filter(t => t.parentId === taskId);
+
+            // Optimistic visual toggle on the live element before re-render
+            if (btnEl) {
+                const newComplete = task.status !== 'complete';
+                btnEl.classList.toggle('complete', newComplete);
+                btnEl.classList.remove('animating');
+                // Force reflow so animation replays every click
+                void btnEl.offsetWidth;
+                btnEl.classList.add('animating');
+            }
 
             if (task.status === 'complete') {
                 task.status = 'incomplete';
-                // if parent marked incomplete, we don't automatically mark children incomplete
             } else {
-                // If it has children, all children must be complete to complete parent
-                // As an action, clicking complete on a parent could automatically complete all children
                 const completeRecursive = (pId) => {
                     const kids = project.tasks.filter(t => t.parentId === pId);
                     kids.forEach(k => {
@@ -1104,10 +1283,14 @@
                 task.status = 'complete';
                 completeRecursive(task.id);
             }
-            evaluateTaskStatus(projectId, task.parentId); // Bubble up
+            evaluateTaskStatus(projectId, task.parentId);
             saveState();
-            renderTaskTree();
-            renderDashboard();
+
+            // Re-render after animation finishes so the pop is visible
+            setTimeout(() => {
+                renderTaskTree();
+                renderDashboard();
+            }, 360);
         }
 
         // Circular progress calculation
@@ -1230,17 +1413,22 @@
                     ? `<ul class="tree-children">${node.children.map(c => renderNode(c)).join('')}</ul>`
                     : '';
                 const toggleHtml = hasChildren
-                    ? `<span class="toggle-btn" onclick="toggleCollapse(this)" title="Expand / Collapse">▼</span>`
+                    ? `<span class="toggle-btn" onclick="event.stopPropagation(); toggleCollapse(this)" title="Expand / Collapse">▼</span>`
                     : '';
 
                 return `
                     <li class="tree-node" data-id="${node.id}" draggable="true">
                         <div class="drop-zone" data-parent="${node.parentId}" data-order="${node.order}"></div>
-                        <div class="task-card ${borderClass}">
+                        <div class="task-card ${borderClass}" onclick="(function(e){ var dot = e.currentTarget.querySelector('.status-dot'); toggleTaskStatus('${activeProjectId}', '${node.id}', dot); })(event)">
                             <div class="task-card-header">
                                 <div class="task-title">
                                     ${toggleHtml}
-                                    <div class="status-dot ${node.status}" onclick="toggleTaskStatus('${activeProjectId}', '${node.id}')"></div>
+                                    <button class="status-dot ${node.status}" onclick="event.stopPropagation(); toggleTaskStatus('${activeProjectId}', '${node.id}', this)" title="Toggle completion">
+                                        <svg width="20" height="20" viewBox="0 0 20 20">
+                                            <circle class="dot-circle" cx="10" cy="10" r="8"/>
+                                            <polyline class="dot-check" points="6,10 9,13 14,7"/>
+                                        </svg>
+                                    </button>
                                     ${node.name}
                                 </div>
                             </div>
