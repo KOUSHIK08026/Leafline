@@ -849,9 +849,19 @@
                 <label class="form-label">Description</label>
                 <textarea id="proj-desc" class="form-control" rows="3"></textarea>
             </div>
-            <div class="form-group">
-                <label class="form-label">Due Date</label>
-                <input type="date" id="proj-date" class="form-control">
+            <div style="display:flex; gap:16px;">
+                <div class="form-group" style="flex:1;">
+                    <label class="form-label">Due Date</label>
+                    <input type="date" id="proj-date" class="form-control">
+                </div>
+                <div class="form-group" style="flex:1;">
+                    <label class="form-label">Priority</label>
+                    <select id="proj-priority" class="form-control">
+                        <option value="Low">Low</option>
+                        <option value="Medium" selected>Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
             </div>
             <div class="modal-actions">
                 <button class="btn btn-outline close-modal-btn">Cancel</button>
@@ -958,6 +968,7 @@
         const projNameInput = document.getElementById('proj-name');
         const projDescInput = document.getElementById('proj-desc');
         const projDateInput = document.getElementById('proj-date');
+        const projPriorityInput = document.getElementById('proj-priority');
 
         const taskNameInput = document.getElementById('task-name');
         const taskDescInput = document.getElementById('task-desc');
@@ -1273,6 +1284,7 @@
             projNameInput.value = p ? p.name : '';
             projDescInput.value = p ? p.description : '';
             projDateInput.value = p ? p.dueDate : '';
+            projPriorityInput.value = p ? (p.priority || 'Medium') : 'Medium';
             projectModal.classList.add('active');
         }
 
@@ -1284,13 +1296,14 @@
                 p.name = projNameInput.value;
                 p.description = projDescInput.value;
                 p.dueDate = projDateInput.value;
+                p.priority = projPriorityInput.value;
             } else {
                 appState.projects.push({
                     id: generateId(),
                     name: projNameInput.value,
                     description: projDescInput.value,
                     dueDate: projDateInput.value,
-                    priority: 'Medium',
+                    priority: projPriorityInput.value,
                     tags: [],
                     createdAt: Date.now(),
                     tasks: []
