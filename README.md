@@ -12,10 +12,14 @@ Leafline is a project-based task tracker built as a single HTML file, using a cy
 - **Drag & Drop**: Move tasks between levels or reorder them seamlessly.
 - **Glassmorphic Design**: Cyan "Crystalline Growth" theme with smooth animations.
 - **Data Persistence**: Offline-first via `localStorage` — no server needed.
+- **Copyright Footer**: Subtle branded footer with the Leafline leaf icon and copyright notice.
 
 ## Changelog
 
 *Check this section before every new commit.*
+
+### [1.0.5] - 30-04-2026
+- **Copyright Footer:** Added a branded footer at the bottom of the main content area displaying the Leafline leaf icon and "© 2026 Leafline. All rights reserved." Styled with a subtle top border, muted text, and a hover fade-in effect. Fully adapts to both light and dark themes.
 
 ### [1.0.4] - 29-04-2026
 - **Dark Mode Checkbox Fix:** Fixed a small white dot appearing inside the circular checkbox in dark theme. The checkmark polyline stroke is now transparent by default and only turns white in the completed state, eliminating the artifact caused by `stroke-linecap: round` rendering a dot at the path origin.
