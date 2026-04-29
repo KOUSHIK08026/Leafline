@@ -665,13 +665,13 @@
 
         .status-dot .dot-check {
             fill: none;
-            stroke: white;
+            stroke: transparent;
             stroke-width: 2;
             stroke-linecap: round;
             stroke-linejoin: round;
             stroke-dasharray: 12;
             stroke-dashoffset: 12;
-            transition: stroke-dashoffset 0.2s ease-in-out 0.12s;
+            transition: stroke-dashoffset 0.2s ease-in-out 0.12s, stroke 0s ease-in-out 0.12s;
         }
 
         /* Checked state */
@@ -681,6 +681,7 @@
         }
 
         .status-dot.complete .dot-check {
+            stroke: white;
             stroke-dashoffset: 0;
         }
 

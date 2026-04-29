@@ -17,6 +17,9 @@ Leafline is a project-based task tracker built as a single HTML file, using a cy
 
 *Check this section before every new commit.*
 
+### [1.0.4] - 29-04-2026
+- **Dark Mode Checkbox Fix:** Fixed a small white dot appearing inside the circular checkbox in dark theme. The checkmark polyline stroke is now transparent by default and only turns white in the completed state, eliminating the artifact caused by `stroke-linecap: round` rendering a dot at the path origin.
+
 ### [1.0.3] - 27-04-2026
 - **Dark / Light Theme Toggle:** Added a 🌙/☀️ toggle button in the top-right header area.
 - **Full Dark Mode:** All surfaces, cards, modals, badges, tree connectors, and form controls styled for dark mode.
